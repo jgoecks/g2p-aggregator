@@ -148,3 +148,28 @@ tests/integration/test_pb_deserialize.py::test_cgi_pb PASSED
 * Harden prototype:
   * python notebook
   * web app (deprecate kibana UI)
+
+
+## Setup
+
+* Create a .env file
+
+```
+ELASTIC_PORT=9200
+KIBANA_PORT=5601
+```
+
+* update `services/nginx/default`  and `docker-compose.yml` to your certificate paths
+
+
+```
+# docker-compose.yml
+
+      - "./compbio-tls:/compbio-tls"
+
+# services/nginx/default
+
+  ssl_certificate                 /compbio-tls/compbio_ohsu_edu_cert.cer;
+  ssl_certificate_key             /compbio-tls/wild.compbio.ohsu.edu.key;
+```
+
