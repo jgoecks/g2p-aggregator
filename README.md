@@ -174,7 +174,7 @@ KIBANA_PORT=5601
 
 * create  `services/nginx/.htpasswd` 
 
-set to your userid:passwd
+Set to your userid:passwd.  See [here for an example](https://www.digitalocean.com/community/tutorials/how-to-set-up-basic-http-authentication-with-nginx-on-ubuntu-14-04#step-2-—-setting-up-http-basic-authentication-credentials) 
 
 
 
