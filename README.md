@@ -161,7 +161,6 @@ KIBANA_PORT=5601
 
 * update `services/nginx/default`  and `docker-compose.yml` to your certificate paths
 
-
 ```
 # docker-compose.yml
 
@@ -172,4 +171,11 @@ KIBANA_PORT=5601
   ssl_certificate                 /compbio-tls/compbio_ohsu_edu_cert.cer;
   ssl_certificate_key             /compbio-tls/wild.compbio.ohsu.edu.key;
 ```
+
+* create  `services/nginx/.htpasswd` 
+
+set to your userid:passwd
+
+
+
 
