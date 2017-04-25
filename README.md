@@ -176,6 +176,15 @@ KIBANA_PORT=5601
 
 Set to your userid:passwd.  See [here for an example](https://www.digitalocean.com/community/tutorials/how-to-set-up-basic-http-authentication-with-nginx-on-ubuntu-14-04#step-2-—-setting-up-http-basic-authentication-credentials) 
 
+* load data
+```
+$ util/elastic-setup.sh
+$ cd harvester; python harvester.py
+```
+
+* setup kibana
+
+![image](https://cloud.githubusercontent.com/assets/47808/25396770/ace3daf6-299a-11e7-9300-07c6c885def6.png)
 
 
 
