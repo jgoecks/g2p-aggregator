@@ -1,19 +1,6 @@
 server {
   listen                          80;
   server_name                     localhost;
-  location / {
-    return 301                      https://$server_name$request_uri;
-  }
-}
-
-
-
-server {
-  listen                          443 ssl;
-  server_name                     localhost;
-
-  ssl_certificate                 /compbio-tls/compbio_ohsu_edu_cert.cer;
-  ssl_certificate_key             /compbio-tls/wild.compbio.ohsu.edu.key;
 
   location /g2p {
      rewrite ^ /static-html/g2p.html last;
