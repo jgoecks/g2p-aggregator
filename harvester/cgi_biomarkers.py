@@ -105,25 +105,28 @@ def convert(evidence):
 
 
     # For each biomarker, add more feature information and yield.
-    gene, hgvs_p = evidence['Alteration'].split(':')
-    print "LOOKING FOR %s, %s" % (gene, hgvs_p)
-    for protein_change in hgvs_p.split(','):
-        matches = LOOKUP_TABLE.get_entries(gene, protein_change)
-        if len(matches) > 0:
-            print "FOUND MATCH", evidence['Alteration'], matches
+    fields = evidence['Alteration'].split(':')
+    if len(fields) == 2:
+        gene, hgvs_p = fields
+        for protein_change in hgvs_p.split(','):
+            matches = LOOKUP_TABLE.get_entries(gene, protein_change)
+            if len(matches) > 0:
 
-            # FIXME: just using the first match for now.
-            match = matches[0]
-            detailed_feature = feature.deepcopy()
-            detailed_feature['chromosome'] = match['chrom']
-            detailed_feature['start'] = match['start']
-            detailed_feature['end'] = match['end']
-            detailed_feature['referenceName'] = match['build']
-            # TODO: add alteration type.
+                # FIXME: just using the first match for now; it's not clear what to
+                # do if there are multiple matches.
+                match = matches[0]
+                detailed_feature = copy.deepcopy(feature)
+                detailed_feature['chromosome'] = match['chrom']
+                detailed_feature['start'] = match['start']
+                detailed_feature['end'] = match['end']
+                detailed_feature['referenceName'] = match['build']
+                # TODO: add alteration type.
 
-            feature_association['feature'] = detailed_feature
+                feature_association['feature'] = detailed_feature
 
             yield feature_association
+    else:
+        yield feature_association
 
 
 def harvest(genes=None, drugs=None):
