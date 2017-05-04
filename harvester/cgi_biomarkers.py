@@ -1,8 +1,12 @@
 import pandas
 import json
+import copy
+
+import cosmic_lookup_table
 
 """ https://www.cancergenomeinterpreter.org/biomarkers """
 
+LOOKUP_TABLE = cosmic_lookup_table.CosmicLookup("./cosmic_lookup_table.tsv")
 
 def _get_evidence_drugs(drug_names, path='./cgi_biomarkers_20170208.tsv'):
     """ load tsv """
@@ -98,7 +102,28 @@ def convert(evidence):
                            'association': association,
                            'source': 'cgi',
                            'cgi': evidence}
-    yield feature_association
+
+
+    # For each biomarker, add more feature information and yield.
+    gene, hgvs_p = evidence['Alteration'].split(':')
+    print "LOOKING FOR %s, %s" % (gene, hgvs_p)
+    for protein_change in hgvs_p.split(','):
+        matches = LOOKUP_TABLE.get_entries(gene, protein_change)
+        if len(matches) > 0:
+            print "FOUND MATCH", evidence['Alteration'], matches
+
+            # FIXME: just using the first match for now.
+            match = matches[0]
+            detailed_feature = feature.deepcopy()
+            detailed_feature['chromosome'] = match['chrom']
+            detailed_feature['start'] = match['start']
+            detailed_feature['end'] = match['end']
+            detailed_feature['referenceName'] = match['build']
+            # TODO: add alteration type.
+
+            feature_association['feature'] = detailed_feature
+
+            yield feature_association
 
 
 def harvest(genes=None, drugs=None):

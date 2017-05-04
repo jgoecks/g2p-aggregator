@@ -5,6 +5,7 @@ data fields: gene, HGVS genomic and protein change, chrom, start, end, ref, and 
 
 import sys
 import re
+import argparse
 import pandas
 
 class CosmicLookup(object):
@@ -15,13 +16,14 @@ class CosmicLookup(object):
     def __init__(self, lookup_table_file):
         self.lookup_table = pandas.read_csv(lookup_table_file, sep="\t")
 
-    def get_entry(self, gene, hgvs_p):
+    def get_entries(self, gene, hgvs_p):
         """
         Returns a dataframe of results from filtering on gene and hgvs_p
         """
         lt = self.lookup_table
         hgvs_p = "p." + hgvs_p
-        return lt[(lt['gene'] == gene) & (lt['hgvs_p'] == hgvs_p)]
+        result = lt[(lt['gene'] == gene) & (lt['hgvs_p'] == hgvs_p)]
+        return result.to_dict(orient='records')
 
 #
 # Methods below parse CosmicMutantExport TSV and create the lookup table.
@@ -67,7 +69,8 @@ def parse_genome_pos(genome_pos):
 
 def print_lookup_table(input_stream):
     """
-    Print COSMIC lookup table by reading from input_stream and outputing corresponding line.
+    Create and print COSMIC lookup table by reading from input_stream and outputing
+    corresponding line for the lookup table.
     """
     print "\t".join(["gene", "hgvs_c", "hgvs_p", "build", "chrom", "start", "end", "ref", "alt", "strand"])
     for line in input_stream:
@@ -86,6 +89,60 @@ def print_lookup_table(input_stream):
             #print >> sys.stderr, "LINE IGNORED", hgvs_c
             pass
 
+def count_matches(lookup_table_file, gene_hgvsp_file):
+    """
+    Benchmarking method to count the number of matches found using the lookup table
+    together with the gene_hgvsp_file. gene_hgvsp_file has format:
+
+    gene<TAB>HGVS.p short notation
+
+    BRAF    V600E
+    EGFR    L861Q
+    """
+    lookup = CosmicLookup(lookup_table_file)
+    total = 0
+    matched = 0
+    unique_matched = 0
+    queried = {}
+    report = ''
+
+    for line in open(gene_hgvsp_file):
+        # Parse line.
+        fields = line.strip().split('\t')
+        if len(fields) != 2:
+            # Something's not right, so ignore.
+            continue
+        gene, hgvs_p = fields
+
+        # Lookup table and count matches.
+        for protein_change in hgvs_p.split(','):
+            hash_entry = "%s-%s" % (gene, protein_change)
+            matches = lookup.get_entries(gene, protein_change)
+            if len(matches) > 0:
+                report = 'MATCHED'
+                matched += 1
+                if hash_entry not in queried:
+                    unique_matched += 1
+            else:
+                report = 'NO MATCH'
+
+            print "%s %s %s" % (report, gene, protein_change)
+            queried[hash_entry] = True
+            total += 1
+
+    unique_total = len(queried)
+    print unique_matched, unique_total, float(unique_matched)/unique_total
+    print matched, total, float(matched)/total
+
 
 if __name__ == "__main__":
-    print_lookup_table(sys.stdin)
+    parser = argparse.ArgumentParser()
+    parser.add_argument('action', help='')
+    parser.add_argument('--lookup-file', dest='lookup_file', help='')
+    parser.add_argument('--benchmark-file', dest='benchmark_file', help='')
+
+    args = parser.parse_args()
+    if args.action == 'create_table':
+        print_lookup_table(sys.stdin)
+    elif args.action == 'benchmark':
+        count_matches(args.lookup_file, args.benchmark_file)
